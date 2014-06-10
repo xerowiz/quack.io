@@ -2,6 +2,7 @@ var express = require('express'),
         app = express(),
         bodyParser = require('body-parser'),
         http = require('http').createServer(app),
+        io = require('socket.io').listen(http),
         _ = require('underscore');
 
 /**
@@ -11,6 +12,16 @@ app.set('ipaddr', process.env.SERVERADDR);
 app.set('port', process.env.SERVERPORT);
 
 app.use(bodyParser());
+
+
+/**
+ * Server context
+ */
+
+// Users
+// - SessionId (id)
+// - User Name (name)
+var users = [];
 
 /**
  * Server API
@@ -24,6 +35,14 @@ app.post('/message', function(req, response) {
   if(_.isUndefined(message) || _.isEmpty(message.trim())) {
     return response.json(400, {error: 'Message invalid'}); 
   }
+
+  // Find user name
+  var user = req.body.user;
+  if(_.isUndefined(user) || _.isEmpty(user.trim())) {
+    return response.json(400, {error: 'Invalid username'});
+  }
+
+  io.socket.emit('incoming message', {message: message, name: name});
 
   return response.json(200, {message: 'Message Received'});
 });
