@@ -3,6 +3,9 @@
       "express": "*",
       "body-parser": "*",
       "socket.io": "*",
-      "underscore": "*"
+      "underscore": "*",
+      "mocha": "*",
+      "chai": "*",
+      "injectr": "*"
     }
 }

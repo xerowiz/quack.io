@@ -42,11 +42,35 @@ app.post('/message', function(req, response) {
     return response.json(400, {error: 'Invalid username'});
   }
 
-  io.socket.emit('incoming message', {message: message, name: name});
+  io.sockets.emit('incoming message', {message: message, user: user});
 
   return response.json(200, {message: 'Message Received'});
+});
+
+/**
+ * Io events
+ */
+io.on('connection', function(socket) {
+
+  socket.on('newUser', function(data) {
+    users.push({id: data.id, name: data.name});
+    io.sockets.emit('newConnection', {users: users});
+  });
+  
+  socket.on('nameChange', function(data) {
+    _.findWhere(users, {id: data.id}).name = data.name; 
+    io.sockets.emit(('nameChanged', {id: data.id, name: data.name}));
+  });
+
+  socket.on('disconnect', function() {
+    users = _.without(users, _.findWhere(users, {id: socket.id})); 
+    io.sockets.emit(('userDisconnected', {id: socket.id, sender:'system'}));
+  });
+
 });
 
 http.listen(app.get('port'), app.get('ipaddr'), function(){
   console.log('Server up and running, go to', app.get('ipaddr')+':'+app.get('port'));
 });
+
+
