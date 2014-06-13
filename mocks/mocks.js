@@ -22,8 +22,23 @@ function MockIo(code, payload) {
 function MockCounter() {
   this.next = function() {
     return 10;
-  }
+  };
 }
+
+function MockUser() {
+}
+
+MockUser.fromIo = function() {
+  return {
+    id: 10,
+    sockId: 10,
+    name: 'quack',
+    status: 'on',
+    isValid: function(){
+      return true;
+    }
+  };
+};
 
 exports.io = function (code, payload) {
   return new MockIo(code, payload);
@@ -32,3 +47,5 @@ exports.io = function (code, payload) {
 exports.counter = function() {
   return new MockCounter();
 };
+
+exports.MockUser = MockUser;

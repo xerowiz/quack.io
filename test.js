@@ -1,9 +1,9 @@
 'use strict';
 var expect = require('chai').expect;
+var injectr = require('injectr');
 var User = require('./lib/model/User.js');
 var UserModule = require('./lib/modules/usermodule.js');
 var Mocks = require('./mocks/mocks.js');
-var injectr = require('injectr');
 
 describe('user', function() {
   describe('#isValid', function() {
@@ -40,7 +40,8 @@ describe('usermodule', function() {
   describe('#isConnected', function() {
 
     it('should not flag as connected a not connected user', function() {
-      var instance = new UserModule();
+      var io = Mocks.io();
+      var instance = new UserModule(io);
       //given
       var id = 0;
       //when
@@ -50,7 +51,8 @@ describe('usermodule', function() {
     });
 
     it('should flag as connected a connected user', function() {
-      var instance = new UserModule();
+      var io = Mocks.io();
+      var instance = new UserModule(io);
       //given
       var existingUser = new User(0,10,'JC','on');
       instance.addUser(existingUser);
@@ -64,21 +66,22 @@ describe('usermodule', function() {
   describe('#onConnect', function() {
     it('should register and notify a valid user', function() {
       //given
-      var io = Mocks.io();
-      var counter = Mocks.counter();
-      io.sockets.emit();
-      var MockUserModule = injectr('./lib/modules/usermodule.js',{
-        io:io,
-        counter:counter
+      var io = Mocks.io('co');
+      var MockUser = Mocks.MockUser;
+      var MockedUserModule = injectr('./lib/modules/usermodule.js',{
+        '../model/User.js': MockUser
       });
-
       var socket = {id: 10};
-      var data= {name: "Duck"};
-      var instance = new MockUserModule();
+      var data = {name: 'quack'};
+      var instance = new MockedUserModule(io);
 
       //when
       var result = instance.onConnect(socket, data);
 
+      //then
+      expect(instance.isConnected(10)).to.be.ok;
+      expect(io.sockets.emitCalled).to.be.ok;
+      expect(io.sockets.calledWithRightCode).to.be.ok;
     });
   });
 });
