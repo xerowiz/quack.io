@@ -6,11 +6,22 @@ var injectr = require('injectr');
 
 var mockio = {
 
+  expectedCode: '',
+  expextedPayload: '',
+
   emitCalled: false,
+  calledWithRightCode: false,
+  calledWithRightPayload: false,
 
   sockets: {
     emit: function(code, data) {
       this.emitCalled = true;
+      if(code === this.expectedCode) {
+        this.calledWithRightCode= true;
+      }
+      if(data === this.expectedPayload){
+        this.calledWithRightPayload = true;
+      }
     }
   }
 };
@@ -68,6 +79,21 @@ describe('usermodule', function() {
       var result = instance.isConnected(existingUser.id);
       //then
       expect(result).to.be.ok;
+    });
+  });
+
+  describe('#onConnect', function() {
+    it('should register and notify a valid user', function() {
+      //given
+      var MockUserModule = injectr('./lib/modules/usermodule.js',{
+        io:mockio
+      });
+      var instance = new MockUserModule();
+      var user = new User(0, 12, 'canard', 'on');
+
+      //when
+      //var result = instance.onConnect()
+
     });
   });
 });
