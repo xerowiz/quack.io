@@ -4,7 +4,6 @@
       "body-parser": "*",
       "socket.io": "*",
       "underscore": "*",
-      "mocha": "*",
       "chai": "*",
       "injectr": "*"
     }
