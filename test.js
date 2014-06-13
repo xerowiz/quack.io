@@ -2,29 +2,8 @@
 var expect = require('chai').expect;
 var User = require('./lib/model/User.js');
 var UserModule = require('./lib/modules/usermodule.js');
+var Mocks = require('./mocks/mocks.js');
 var injectr = require('injectr');
-
-var mockio = {
-
-  expectedCode: '',
-  expextedPayload: '',
-
-  emitCalled: false,
-  calledWithRightCode: false,
-  calledWithRightPayload: false,
-
-  sockets: {
-    emit: function(code, data) {
-      this.emitCalled = true;
-      if(code === this.expectedCode) {
-        this.calledWithRightCode= true;
-      }
-      if(data === this.expectedPayload){
-        this.calledWithRightPayload = true;
-      }
-    }
-  }
-};
 
 describe('user', function() {
   describe('#isValid', function() {
@@ -72,7 +51,7 @@ describe('usermodule', function() {
 
     it('should flag as connected a connected user', function() {
       var instance = new UserModule();
-      //given 
+      //given
       var existingUser = new User(0,10,'JC','on');
       instance.addUser(existingUser);
       //when
@@ -85,14 +64,20 @@ describe('usermodule', function() {
   describe('#onConnect', function() {
     it('should register and notify a valid user', function() {
       //given
+      var io = Mocks.io();
+      var counter = Mocks.counter();
+      io.sockets.emit();
       var MockUserModule = injectr('./lib/modules/usermodule.js',{
-        io:mockio
+        io:io,
+        counter:counter
       });
+
+      var socket = {id: 10};
+      var data= {name: "Duck"};
       var instance = new MockUserModule();
-      var user = new User(0, 12, 'canard', 'on');
 
       //when
-      //var result = instance.onConnect()
+      var result = instance.onConnect(socket, data);
 
     });
   });
