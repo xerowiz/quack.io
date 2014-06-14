@@ -40,6 +40,20 @@ MockUser.fromIo = function() {
   };
 };
 
+function MockBadUser() {
+
+}
+
+MockBadUser.fromIo = function() {
+  var usr = MockUser.fromIo();
+
+  usr.isValid = function() {
+    return false;
+  };
+
+  return usr;
+};
+
 exports.io = function (code, payload) {
   return new MockIo(code, payload);
 };
@@ -49,3 +63,4 @@ exports.counter = function() {
 };
 
 exports.MockUser = MockUser;
+exports.MockBadUser = MockBadUser;

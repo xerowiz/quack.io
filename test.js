@@ -83,5 +83,25 @@ describe('usermodule', function() {
       expect(io.sockets.emitCalled).to.be.ok;
       expect(io.sockets.calledWithRightCode).to.be.ok;
     });
+
+    it('should not register and notify an invalid user', function() {
+      // given
+      var io = Mocks.io('co');
+      var MockBadUser = Mocks.MockBadUser;
+      var MockedUserModule = injectr('./lib/modules/usermodule.js',{
+        '../model/User.js': MockBadUser
+      });
+      var socket = {id: 10};
+      var data = {name: 'quack'};
+      var instance = new MockedUserModule(io);
+
+      // when
+      var result = instance.onConnect(socket, data);
+
+      // then
+
+      expect(instance.isConnected(10)).to.be.not.ok;
+      expect(io.sockets.emitCalled).to.be.not.ok;
+    });
   });
 });
