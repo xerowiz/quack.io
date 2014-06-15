@@ -25,33 +25,38 @@ function MockCounter() {
   };
 }
 
-function MockUser() {
+function MockUser(expectedValidResult, expectedValidateNameResult) {
+  this.id = 10;
+  this.sockId = 10;
+  this.name = 'quack';
+  this.status = 'on';
+  this.isValidResult = expectedValidResult;
+  this.validateNameResult = expectedValidateNameResult;
 }
 
-MockUser.fromIo = function() {
-  return {
-    id: 10,
-    sockId: 10,
-    name: 'quack',
-    status: 'on',
-    isValid: function(){
-      return true;
-    }
-  };
+MockUser.prototype =  {
+
+  isValid: function() {
+    return this.isValidResult;
+  },
+
+  validateName: function() {
+    return this.validateNameResult;
+  }
+
 };
 
-function MockBadUser() {
-
+function MockUserFactory(expectedValidResult, expectedValidateNameResult) {
+  this.expectedValidResult = expectedValidResult;
+  this.expectedValidateNameResult = expectedValidateNameResult;
 }
 
-MockBadUser.fromIo = function() {
-  var usr = MockUser.fromIo();
+MockUserFactory.prototype = {
 
-  usr.isValid = function() {
-    return false;
-  };
+  fromIo: function() {
+    return new MockUser(this.expectedValidResult, this.expectedValidateNameResult);
+  }
 
-  return usr;
 };
 
 exports.io = function (code, payload) {
@@ -62,5 +67,4 @@ exports.counter = function() {
   return new MockCounter();
 };
 
-exports.MockUser = MockUser;
-exports.MockBadUser = MockBadUser;
+exports.MockUserFactory = MockUserFactory;
