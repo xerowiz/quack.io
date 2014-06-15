@@ -1,19 +1,22 @@
 'use strict';
 var express = require('express'),
         app = express(),
-        bodyParser = require('body-parser'),
         http = require('http').createServer(app),
         io = require('socket.io').listen(http),
-        UserModule = require('./lib/modules/usermodule.js');
+        UserModule = require('./lib/modules/usermodule.js'),
+        EventingModule = require('./lib/modules/eventingmodule.js');
 
+/**
+ * App modules
+ */
 var usermodule = new UserModule(io);
+var eventing = new EventingModule(io, usermodule);
+
 /**
  * Server setup
  */
 app.set('ipaddr', process.env.MEOWADDR);
 app.set('port', process.env.MEOWPORT);
-
-app.use(bodyParser());
 
 /**
  * Io events
@@ -38,6 +41,10 @@ io.on('connection', function(socket) {
 
   socket.on('statusChange', function(data) {
     usermodule.onStatusChanged(data);
+  });
+
+  socket.on('post', function(data) {
+    eventing.onPost(data);
   });
 
 });
