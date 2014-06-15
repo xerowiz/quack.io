@@ -1,3 +1,3 @@
 #! /bin/bash
-export SERVERADDR=127.0.0.1;
-export SERVERPORT=8080;
+export MEOWADDR=127.0.0.1;
+export MEOWPORT=8080;
