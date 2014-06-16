@@ -1,10 +1,12 @@
 {
-    "dependencies": {
-      "express": "*",
-      "body-parser": "*",
-      "socket.io": "*",
-      "underscore": "*",
-      "chai": "*",
-      "injectr": "*"
-    }
+  "name": "meow-server",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "*",
+    "body-parser": "*",
+    "socket.io": "*",
+    "underscore": "*",
+    "chai": "*",
+    "injectr": "*"
+  }
 }

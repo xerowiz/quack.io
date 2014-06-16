@@ -1,8 +1,8 @@
 'use strict';
 var express = require('express'),
         app = express(),
-        http = require('http').createServer(app),
-        io = require('socket.io').listen(http),
+        http = require('http').Server(app),
+        io = require('socket.io')(http),
         UserModule = require('./lib/modules/usermodule.js'),
         EventingModule = require('./lib/modules/eventingmodule.js');
 
