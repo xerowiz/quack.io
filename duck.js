@@ -15,8 +15,8 @@ var eventing = new EventingModule(io, usermodule);
 /**
  * Server setup
  */
-app.set('ipaddr', process.env.MEOWADDR);
-app.set('port', process.env.MEOWPORT);
+app.set('ipaddr', process.env.DUCKADDR);
+app.set('port', process.env.DUCKPORT);
 
 /**
  * Io events
