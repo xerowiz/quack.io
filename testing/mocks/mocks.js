@@ -19,12 +19,6 @@ function MockIo(code, payload) {
   };
 }
 
-function MockCounter() {
-  this.next = function() {
-    return 10;
-  };
-}
-
 function MockUser(expectedValidResult, expectedValidateNameResult) {
   this.id = 10;
   this.sockId = 10;
@@ -32,6 +26,13 @@ function MockUser(expectedValidResult, expectedValidateNameResult) {
   this.status = 'on';
   this.isValidResult = expectedValidResult;
   this.validateNameResult = expectedValidateNameResult;
+}
+
+function MockSocket(id, socketCallback, inCallback){
+  this.id = id;
+  this.join = socketCallback;
+  this.leave = socketCallback;
+  this.in = inCallback;
 }
 
 MockUser.prototype =  {
@@ -45,6 +46,10 @@ MockUser.prototype =  {
   }
 
 };
+
+function MockSocketFactory(id, socketCallback, inCallback) {
+  return new MockSocket(id, socketCallback, inCallback);
+}
 
 function MockUserFactory(expectedValidResult, expectedValidateNameResult) {
   this.expectedValidResult = expectedValidResult;
@@ -63,8 +68,5 @@ exports.io = function (code, payload) {
   return new MockIo(code, payload);
 };
 
-exports.counter = function() {
-  return new MockCounter();
-};
-
+exports.MockSocketFactory = MockSocketFactory;
 exports.MockUserFactory = MockUserFactory;
