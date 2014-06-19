@@ -1,6 +1,7 @@
 'use strict';
 var expect = require('chai').expect;
 var Room = require('../lib/model/room.js');
+var Result = require('../lib/model/result.js');
 var mocks = require('./mocks/mocks.js');
 
 describe('Rooms', function() {
@@ -12,6 +13,7 @@ describe('Rooms', function() {
       var joinedRoom = null;
       var notifMessage = null;
       var notifPayload = null;
+
       var socket = mocks.MockSocketFactory(
         'bbbb',
         function(name, callback) {
@@ -33,10 +35,11 @@ describe('Rooms', function() {
           result = joinResult;
         });
         // then
+        expect(joinedRoom).to.equal('quackroom');
         expect(broadcastRoom).to.equal('quackroom');
         expect(notifMessage).to.equal('userJoined');
         expect(notifPayload).to.equal('bbbb');
-        // WTF ?expect(result).to.be.eql({ status: 'success', code: undefined, payload: undefined });
+        expect(result).to.be.eql(Result.success());
     });
 
     it('should cancel join socket join operation fails', function() {
@@ -68,10 +71,11 @@ describe('Rooms', function() {
         });
 
         // then
+        expect(joinedRoom).to.equal('quackroom');
         expect(broadcastRoom).to.equal(null);
         expect(notifMessage).to.equal(null);
         expect(notifPayload).to.equal(null);
-        // WTF ?expect(result).to.be.eql({ status: 'failure', code: 1, payload: {error: 'already in room'}});
+        expect(result).to.be.eql(Result.failure(0,{error: 'failed'}));
     });
 
     it('should not accept join when user is already in room', function() {
@@ -106,10 +110,11 @@ describe('Rooms', function() {
         });
 
         // then
+        expect(joinedRoom).to.equal(null);
         expect(broadcastRoom).to.equal(null);
         expect(notifMessage).to.equal(null);
         expect(notifPayload).to.equal(null);
-        // WTF ?expect(result).to.be.eql({ status: 'failure', code: 1, payload: {error: 'already in room'}});
+        expect(result).to.be.eql(Result.failure(1,{error: 'already in room'}));
     });
   });
 
@@ -145,10 +150,11 @@ describe('Rooms', function() {
           result = leaveResult;
         });
         // then
+        expect(leftRoom).to.equal('quackroom');
         expect(broadcastRoom).to.equal('quackroom');
         expect(notifMessage).to.equal('userLeft');
         expect(notifPayload).to.equal('bbbb');
-        // WTF ?expect(result).to.be.eql({ status: 'success', code: undefined, payload: undefined });
+        expect(result).to.be.eql(Result.success());
     });
 
     it('should cancel leave  when socket leave operation fails', function() {
@@ -173,6 +179,7 @@ describe('Rooms', function() {
               notifPayload = payload;
             }};
         });
+
         room.users.push(user);
         var result = null;
         // when
@@ -181,10 +188,11 @@ describe('Rooms', function() {
         });
 
         // then
+        expect(leftRoom).to.equal('quackroom');
         expect(broadcastRoom).to.equal(null);
         expect(notifMessage).to.equal(null);
         expect(notifPayload).to.equal(null);
-        // WTF ?expect(result).to.be.eql({ status: 'failure', code: 1, payload: {error: 'already in room'}});
+        expect(result).to.be.eql(Result.failure(0, {error: 'failed'}));
     });
 
     it('should not accept join when user is not in room', function() {
@@ -217,10 +225,11 @@ describe('Rooms', function() {
         });
 
         // then
+        expect(leftRoom).to.equal(null);
         expect(broadcastRoom).to.equal(null);
         expect(notifMessage).to.equal(null);
         expect(notifPayload).to.equal(null);
-        // WTF ?expect(result).to.be.eql({ status: 'failure', code: 1, payload: {error: 'already in room'}});
+        expect(result).to.be.eql(Result.failure(1,{error: 'not in room'}));
     });
   });
 
@@ -263,7 +272,7 @@ describe('Rooms', function() {
       expect(broadcastRoom).to.equal('quackroom');
       expect(emittedEvent).to.equal('event');
       expect(emittedPayload).to.eql(event);
-      // same stuff here :( expect(receivedResult).to.eql({status: 'success', code: undefined, payload: undefined});
+      expect(receivedResult).to.eql(Result.success());
     });
 
     it('should not accept post when event is invalid', function() {
@@ -304,7 +313,7 @@ describe('Rooms', function() {
       expect(broadcastRoom).to.equal(null);
       expect(emittedEvent).to.equal(null);
       expect(emittedPayload).to.equal(null);
-      // same stuff here :( expect(receivedResult).to.eql({status: 'success', code: undefined, payload: undefined});
+      expect(receivedResult).to.eql(Result.failure(0,{error: 'invalid event'}));
     });
 
     it('should not accept post when user is not in room', function() {
@@ -344,7 +353,7 @@ describe('Rooms', function() {
       expect(broadcastRoom).to.equal(null);
       expect(emittedEvent).to.equal(null);
       expect(emittedPayload).to.equal(null);
-      // same stuff here :( expect(receivedResult).to.eql({status: 'success', code: undefined, payload: undefined});
+      expect(receivedResult).to.eql(Result.failure(1, {error:'not in room'}));
     });
   });
 });
