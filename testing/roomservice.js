@@ -205,8 +205,36 @@ describe('RoomService', function() {
 
     it('should not accept leave for a not identified user', function() {
       // given
+
+      var broadcastEvent = null;
+      var broadcastPayload = null;
+      var socket = {
+        id: 'aaaa',
+        broadcast: function(event, payload) {
+          broadcastEvent = event;
+          broadcastPayload = payload;
+        }
+      };
+
+      var name = 'totoroom';
+
+      var registery = {
+        isIdentified: function() {
+          return false;
+        }
+      };
+
+      var roomservice = new RoomService({}, registery);
+
+      var result = null;
       // when
+      roomservice.onLeave(socket, name, function(ackPayload) {
+        result = ackPayload;
+      });
+
       // then
+
+      expect(result).to.be.eql(Result.failure(11, {error: 'user not identified'}));
     });
 
     it('should not accept leave for a unknown room', function() {
