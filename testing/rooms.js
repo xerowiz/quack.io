@@ -13,6 +13,8 @@ describe('Rooms', function() {
       var joinedRoom = null;
       var notifMessage = null;
       var notifPayload = null;
+      var emitEvent = null;
+      var emitPayload = null;
 
       var socket = mocks.MockSocketFactory(
         'bbbb',
@@ -29,6 +31,11 @@ describe('Rooms', function() {
             }};
         });
 
+        socket.emit = function(event, payload) {
+          emitEvent = event;
+          emitPayload = payload;
+        };
+
         var result = null;
         // when
         room.join(socket, function(joinResult){
@@ -40,6 +47,8 @@ describe('Rooms', function() {
         expect(notifMessage).to.equal('userJoined');
         expect(notifPayload).to.equal('bbbb');
         expect(result).to.be.eql(Result.success());
+        expect(emitEvent).to.be.equal('joinedRoom');
+        expect(emitPayload).to.be.equal('quackroom')
     });
 
     it('should cancel join socket join operation fails', function() {
@@ -127,6 +136,9 @@ describe('Rooms', function() {
       var notifMessage = null;
       var notifPayload = null;
       var user = {id: 'bbbb'};
+      var emitEvent = null;
+      var emitPayload = null;
+
       var socket = mocks.MockSocketFactory(
         'bbbb',
         function(name, callback) {
@@ -142,6 +154,10 @@ describe('Rooms', function() {
             }};
         });
 
+        socket.emit = function(event, payload) {
+          emitEvent = event;
+          emitPayload = payload;
+        };
         room.users.push(user);
 
         var result = null;
@@ -155,6 +171,8 @@ describe('Rooms', function() {
         expect(notifMessage).to.equal('userLeft');
         expect(notifPayload).to.equal('bbbb');
         expect(result).to.be.eql(Result.success());
+        expect(emitEvent).to.be.equal('leftRoom');
+        expect(emitPayload).to.be.eql('quackroom');
     });
 
     it('should cancel leave  when socket leave operation fails', function() {
