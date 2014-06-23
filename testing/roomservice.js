@@ -239,20 +239,107 @@ describe('RoomService', function() {
 
     it('should not accept leave for a unknown room', function() {
       // given
+
+      var broadcastEvent = null;
+      var broadcastPayload = null;
+      var socket = {
+        id: 'aaaa',
+        broadcast: function(event, payload) {
+          broadcastEvent = event;
+          broadcastPayload = payload;
+        }
+      };
+
+      var name = 'totoroom';
+
+      var registery = {
+        isIdentified: function() {
+          return true;
+        }
+      };
+
+      var roomservice = new RoomService({}, registery);
+
+      var result = null;
       // when
+      roomservice.onLeave(socket, name, function(ackPayload) {
+        result = ackPayload;
+      });
+
       // then
+
+      expect(result).to.be.eql(Result.failure(10, {error: 'room not existing'}));
     });
   });
 
   describe('#onDisconnect', function() {
     it('should avoid processing when disconected user is not identified', function() {
       // given
+
+      var socket = {
+        id: 'aaaa',
+        rooms: ['toto','firefox', 'blah']
+      };
+
+      var registery = {
+        isIdentified: function() {
+          return false;
+        }
+      };
+
+      var roomservice = new RoomService({}, registery);
       // when
+
+      roomservice.onDisconnect(socket);
+
       // then
+      // no mehtods are defined on mocks, so unexpected calls will lead to test failure
     });
 
     it('should remove the disconnected user from all rooms it was connected to',function(){
+      // given
 
+      var MockRoom = function(name, empty) {
+          this.name = name;
+          this.left = false;
+          this.empty = empty;
+
+          this.leave = function(socket, ack) {
+            this.left = true;
+          };
+
+          this.isEmpty = function() {
+            return this.empty;
+          };
+      };
+
+      var socket = {
+        id: 'aaaa',
+        rooms: ['toto','firefox', 'blah']
+      };
+
+      var registery = {
+        isIdentified: function() {
+          return true;
+        }
+      };
+
+      var totoRoom = new MockRoom('toto', false);
+      var firefoxRoom = new MockRoom('firefox', false);
+      var blahRoom = new MockRoom('blah', false);
+
+      var roomservice = new RoomService({}, registery);
+      roomservice.rooms.push(totoRoom);
+      roomservice.rooms.push(firefoxRoom);
+      roomservice.rooms.push(blahRoom);
+
+      // when
+      roomservice.onDisconnect(socket);
+
+      // then
+      expect(totoRoom.left).to.be.ok;
+      expect(firefoxRoom.left).to.be.ok;
+      expect(blahRoom.left).to.be.ok;
     });
   });
 });
