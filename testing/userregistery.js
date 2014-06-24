@@ -2,15 +2,14 @@
 var expect = require('chai').expect;
 var injectr = require('injectr');
 var User = require('../lib/model/User.js');
-var UserModule = require('../lib/modules/usermodule.js');
+var UserRegistery = require('../lib/modules/userregistery.js');
 var Mocks = require('./mocks/mocks.js');
 
-describe('usermodule', function() {
+describe('userregistery', function() {
   describe('#isConnected', function() {
 
     it('should not flag as connected a not connected user', function() {
-      var io = Mocks.io();
-      var instance = new UserModule(io);
+      var instance = new UserRegistery();
       //given
       var id = 0;
       //when
@@ -20,49 +19,52 @@ describe('usermodule', function() {
     });
 
     it('should flag as connected a connected user', function() {
-      var io = Mocks.io();
-      var instance = new UserModule(io);
+      var instance = new UserRegistery();
+
       //given
       var existingUser = new User(0,10,'JC','on');
-      instance.addUser(existingUser);
+      instance.users.push(existingUser);
+
       //when
       var result = instance.isConnected(existingUser.id);
+
       //then
       expect(result).to.be.ok;
     });
   });
 
-  describe('#onJoin', function() {
-    it('should register and notify a valid user', function() {
+  describe('#onIdentify', function() {
+    it('should register and notify new user', function() {
       //given
-      var io = Mocks.io('userJoined');
       var MockUser = new Mocks.MockUserFactory(true, true);
-      var MockedUserModule = injectr('../lib/modules/usermodule.js',{
+      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
         '../model/User.js': MockUser
       });
+
       var socket = {id: 10};
       var data = {name: 'quack'};
-      var instance = new MockedUserModule(io);
+
+      var instance = new MockedUserRegistery();
 
       //when
-      var result = instance.onJoin(socket, data);
+      var result = instance.onIdentify(socket, data, function(result) {
+        
+      });
 
       //then
-      expect(instance.isConnected(10)).to.be.ok;
-      expect(io.sockets.emitCalled).to.be.ok;
-      expect(io.sockets.calledWithRightCode).to.be.ok;
+      expect(instance.isIdentified(10)).to.be.ok;
     });
 
     it('should not register and notify an invalid user', function() {
       // given
       var io = Mocks.io('userJoined');
       var MockBadUser = new Mocks.MockUserFactory(false, false);
-      var MockedUserModule = injectr('../lib/modules/usermodule.js',{
+      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
         '../model/User.js': MockBadUser
       });
       var socket = {id: 10};
       var data = {name: 'quack'};
-      var instance = new MockedUserModule(io);
+      var instance = new MockedUserRegistery(io);
 
       // when
       var result = instance.onJoin(socket, data);
@@ -78,11 +80,11 @@ describe('usermodule', function() {
       ///given
       var io = Mocks.io('userLeft');
       var MockUser = new Mocks.MockUserFactory(true, true);
-      var MockedUserModule = injectr('../lib/modules/usermodule.js',{
+      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
         '../model/User.js': MockUser
       });
       var socket = {id: 10};
-      var instance = new MockedUserModule(io);
+      var instance = new MockedUserRegistery(io);
       var connectedUser = MockUser.fromIo();
 
       instance.addUser(connectedUser);
@@ -100,11 +102,11 @@ describe('usermodule', function() {
       // given
       var io = Mocks.io('userLeft');
       var MockUser = Mocks.MockUserFactory(true, true);
-      var MockedUserModule = injectr('../lib/modules/usermodule.js',{
+      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
         '../model/User.js': MockUser
       });
       var socket = {id: 10};
-      var instance = new MockedUserModule(io);
+      var instance = new MockedUserRegistery(io);
 
       //when
       instance.onDisconnect(socket);
@@ -120,10 +122,10 @@ describe('usermodule', function() {
       // given
       var io = Mocks.io('nameChanged');
       var MockUser = new Mocks.MockUserFactory(true, true);
-      var MockedUserModule = injectr('../lib/modules/usermodule.js',{
+      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
         '../model/User.js': MockUser
       });
-      var instance = new MockedUserModule(io);
+      var instance = new MockedUserRegistery(io);
       instance.addUser(MockUser.fromIo());
       var data ={
         id: 10,
@@ -143,10 +145,10 @@ describe('usermodule', function() {
       /// given
       var io = Mocks.io('nameChanged');
       var MockUser = new Mocks.MockUserFactory(true, false);
-      var MockedUserModule = injectr('../lib/modules/usermodule.js',{
+      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
         '../model/User.js': MockUser
       });
-      var instance = new MockedUserModule(io);
+      var instance = new MockedUserRegistery(io);
       instance.addUser(MockUser.fromIo());
       var data = {
         id: 10,
@@ -165,10 +167,10 @@ describe('usermodule', function() {
       /// given
       var io = Mocks.io('nameChanged');
       var MockUser = new Mocks.MockUserFactory(true, true);
-      var MockedUserModule = injectr('../lib/modules/usermodule.js',{
+      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
         '../model/User.js': MockUser
       });
-      var instance = new MockedUserModule(io);
+      var instance = new MockedUserRegistery(io);
       instance.addUser(MockUser.fromIo());
       var data ={
         id: 10,
@@ -187,10 +189,10 @@ describe('usermodule', function() {
       /// given
       var io = Mocks.io('nameChanged');
       var MockUser = new Mocks.MockUserFactory(true, true);
-      var MockedUserModule = injectr('../lib/modules/usermodule.js',{
+      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
         '../model/User.js': MockUser
       });
-      var instance = new MockedUserModule(io);
+      var instance = new MockedUserRegistery(io);
       var data ={
         id: 10,
         name: 'quack' 
