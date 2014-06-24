@@ -1,3 +1,3 @@
 #! /bin/bash
-export DUCKADDR=127.0.0.1;
-export DUCKPORT=8080;
+export QUACKADDR=127.0.0.1;
+export QUACKPORT=8080;
