@@ -6,7 +6,7 @@ describe('user', function() {
   describe('#isValid', function() {
     it('should flag as valid user a valid user', function() {
       // given
-      var validUser = new User(0, 12, 'robert', 'on');
+      var validUser = new User('aaaa', 'robert', 'on');
       // when
       var result = validUser.isValid();
       // then
@@ -15,7 +15,7 @@ describe('user', function() {
 
     it('should not flag as valid user a badformated one', function() {
       // given
-      var validUser = new User(0, undefined, 'robert', 'on');
+      var validUser = new User(undefined, 'robert', 'on');
       // when
       var result = validUser.isValid();
       // then
@@ -24,7 +24,7 @@ describe('user', function() {
 
     it('should not flag as valid user an user with bad status ', function() {
       // given
-      var validUser = new User(0, 12, 'robert', 'wtf');
+      var validUser = new User('aaaa', 'robert', 'wtf');
       // when
       var result = validUser.isValid();
       // then
