@@ -1,19 +1,20 @@
 'use strict';
 var expect = require('chai').expect;
 var injectr = require('injectr');
-var User = require('../lib/model/User.js');
+var User = require('../lib/model/user.js');
 var UserRegistery = require('../lib/modules/userregistery.js');
 var Mocks = require('./mocks/mocks.js');
+var Result = require('../lib/model/result.js');
 
 describe('userregistery', function() {
-  describe('#isConnected', function() {
+  describe('#isIdentified', function() {
 
     it('should not flag as connected a not connected user', function() {
       var instance = new UserRegistery();
       //given
       var id = 0;
       //when
-      var result = instance.isConnected(id);
+      var result = instance.isIdentified(id);
       //then
       expect(result).to.be.not.ok;
     });
@@ -26,7 +27,7 @@ describe('userregistery', function() {
       instance.users.push(existingUser);
 
       //when
-      var result = instance.isConnected(existingUser.id);
+      var result = instance.isIdentified(existingUser.id);
 
       //then
       expect(result).to.be.ok;
@@ -36,173 +37,317 @@ describe('userregistery', function() {
   describe('#onIdentify', function() {
     it('should register and notify new user', function() {
       //given
-      var MockUser = new Mocks.MockUserFactory(true, true);
+
+      var MockUser = {
+        fromIo: function() {
+          return {
+            id: 10,
+            isValid: function() {
+              return true;
+            }
+          };
+        }
+      };
+
       var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
-        '../model/User.js': MockUser
+        '../model/user.js': MockUser
       });
 
       var socket = {id: 10};
       var data = {name: 'quack'};
-
+      var result = null;
       var instance = new MockedUserRegistery();
 
       //when
-      var result = instance.onIdentify(socket, data, function(result) {
-        
+      instance.onIdentify(socket, data, function(payload) {
+        result = payload;
       });
 
       //then
       expect(instance.isIdentified(10)).to.be.ok;
+      expect(result).to.be.eql(Result.success());
     });
 
     it('should not register and notify an invalid user', function() {
       // given
-      var io = Mocks.io('userJoined');
-      var MockBadUser = new Mocks.MockUserFactory(false, false);
+      var MockUser = {
+        id: 10,
+        fromIo: function() {
+          return {
+            isValid: function() {
+              return false;
+            }
+          };
+        }
+      };
+
       var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
-        '../model/User.js': MockBadUser
+        '../model/user.js': MockUser
       });
+
       var socket = {id: 10};
       var data = {name: 'quack'};
-      var instance = new MockedUserRegistery(io);
+      var instance = new MockedUserRegistery();
+      var result = null;
 
       // when
-      var result = instance.onJoin(socket, data);
+      instance.onIdentify(socket, data, function(payload) {
+        result = payload;
+      });
 
       // then
-      expect(instance.isConnected(10)).to.be.not.ok;
-      expect(io.sockets.emitCalled).to.be.not.ok;
+      expect(result).to.be.eql(Result.failure(10,{error: 'invalid data'}));
+      expect(instance.isIdentified(10)).to.be.not.ok;
     });
   });
 
   describe('#onDisconnect', function() {
     it('should unregister and notify an existing user', function() {
-      ///given
-      var io = Mocks.io('userLeft');
-      var MockUser = new Mocks.MockUserFactory(true, true);
+      // given
+      var MockUser = {
+        id: 10,
+        fromIo: function() {
+          return {
+            isValid: function() {
+              return false;
+            }
+          };
+        }
+      };
       var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
         '../model/User.js': MockUser
       });
+
       var socket = {id: 10};
-      var instance = new MockedUserRegistery(io);
+      var instance = new MockedUserRegistery();
       var connectedUser = MockUser.fromIo();
 
-      instance.addUser(connectedUser);
+      instance.users.push(connectedUser);
 
       //when
       instance.onDisconnect(socket);
 
       //then
-      expect(instance.isConnected(10)).to.be.not.ok;
-      expect(io.sockets.emitCalled).to.be.ok;
-      expect(io.sockets.calledWithRightCode).to.be.ok;
+      expect(instance.isIdentified(10)).to.be.not.ok;
     });
 
     it('should not unregister and notify a not connected user', function() {
       // given
-      var io = Mocks.io('userLeft');
       var MockUser = Mocks.MockUserFactory(true, true);
       var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
         '../model/User.js': MockUser
       });
       var socket = {id: 10};
-      var instance = new MockedUserRegistery(io);
+      var instance = new MockedUserRegistery();
 
       //when
       instance.onDisconnect(socket);
 
       //then
-      expect(instance.isConnected(10)).to.be.not.ok;
-      expect(io.sockets.emitCalled).to.be.not.ok;
+      expect(instance.isIdentified(10)).to.be.not.ok;
     });
   });
 
   describe('#onNameChange', function() {
     it('should notify a name update for a connected user', function() {
       // given
-      var io = Mocks.io('nameChanged');
-      var MockUser = new Mocks.MockUserFactory(true, true);
-      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
-        '../model/User.js': MockUser
-      });
-      var instance = new MockedUserRegistery(io);
-      instance.addUser(MockUser.fromIo());
-      var data ={
-        id: 10,
-        name: 'roger' 
+
+      var mockuser = {
+        fromio: function() {
+          return {
+            id: 10,
+            isvalid: function() {
+              return true;
+            },
+            validateName: function() {
+              return true;
+            },
+            name: 'joe'
+          };
+        }
       };
 
+      var userregistery = require('../lib/modules/userregistery.js');
+
+      var instance = new userregistery();
+
+      var result = null;
+      var sentevt = null;
+      var sentpayload = null;
+      var socket = {
+        id: 10,
+        broadcast: function(evt, payload) {
+          sentevt = evt;
+          sentpayload = payload;
+        }
+      };
+      var data ={
+        name: 'roger'
+      };
+
+      var usr = mockuser.fromio();
+      instance.users.push(usr);
+
       //when
-      var result = instance.onNameChange(data);
+      instance.onNameChange(socket, data, function(payload) {
+        result = payload;
+      });
 
       //then
-      expect(result).to.be.ok;
-      expect(io.sockets.emitCalled).to.be.ok;
-      expect(io.sockets.calledWithRightCode).to.be.ok;
+
+      expect(result).to.be.eql(Result.success());
+      expect(sentevt).to.be.equal('nameChanged');
+      expect(sentpayload).to.be.eql(usr);
     });
 
     it('should not notify a name update for a connected user with a non valid new name', function() {
-      /// given
-      var io = Mocks.io('nameChanged');
-      var MockUser = new Mocks.MockUserFactory(true, false);
-      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
-        '../model/User.js': MockUser
-      });
-      var instance = new MockedUserRegistery(io);
-      instance.addUser(MockUser.fromIo());
-      var data = {
-        id: 10,
-        name: {payload: 'canard'}
+      // given
+
+      var MockUser = {
+        fromIo: function() {
+          return {
+            id: 10,
+            isValid: function() {
+              return true;
+            },
+            validateName: function() {
+              return false;
+            },
+            name: 'joe'
+          };
+        }
       };
 
+      var UserRegistery = require('../lib/modules/userregistery.js');
+
+      var instance = new UserRegistery();
+
+      var result = null;
+      var sentevt = null;
+      var sentpayload = null;
+      var socket = {
+        id: 10,
+        broadcast: function(evt, payload) {
+          sentevt = evt;
+          sentpayload = payload;
+        }
+      };
+      var data ={
+        name: 'roger'
+      };
+
+      var usr = MockUser.fromIo();
+      instance.users.push(usr);
+
       //when
-      var result = instance.onNameChange(data);
+      instance.onNameChange(socket, data, function(payload) {
+        result = payload;
+      });
 
       //then
-      expect(result).to.be.not.ok;
-      expect(io.sockets.emitCalled).to.be.not.ok;
+      expect(result).to.be.eql(Result.failure(10, {error: 'invalid username'}));
+      expect(sentevt).to.be.equal(null);
+      expect(sentpayload).to.be.eql(null);
     });
 
     it('should not notify a name update for a new name which is the same than the actual', function() {
-      /// given
-      var io = Mocks.io('nameChanged');
-      var MockUser = new Mocks.MockUserFactory(true, true);
-      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
-        '../model/User.js': MockUser
-      });
-      var instance = new MockedUserRegistery(io);
-      instance.addUser(MockUser.fromIo());
-      var data ={
-        id: 10,
-        name: 'quack' 
+      // given
+
+      var MockUser = {
+        fromIo: function() {
+          return {
+            id: 10,
+            isvalid: function() {
+              return true;
+            },
+            validateName: function() {
+              return true;
+            },
+            name: 'joe'
+          };
+        }
       };
 
+      var UserRegistery = require('../lib/modules/userregistery.js');
+
+      var instance = new UserRegistery();
+
+      var result = null;
+      var sentevt = null;
+      var sentpayload = null;
+      var socket = {
+        id: 10,
+        broadcast: function(evt, payload) {
+          sentevt = evt;
+          sentpayload = payload;
+        }
+      };
+      var data ={
+        name: 'joe'
+      };
+
+      var usr = MockUser.fromIo();
+      instance.users.push(usr);
+
       //when
-      var result = instance.onNameChange(data);
+      instance.onNameChange(socket, data, function(payload) {
+        result = payload;
+      });
 
       //then
-      expect(result).to.be.not.ok;
-      expect(io.sockets.emitCalled).to.be.not.ok;
+
+      expect(result).to.be.eql(Result.failure(10, {error: 'invalid username'}));
+      expect(sentevt).to.be.equal(null);
+      expect(sentpayload).to.be.eql(null);
     });
 
     it('should not notify a name update for a not connected user', function() {
-      /// given
-      var io = Mocks.io('nameChanged');
-      var MockUser = new Mocks.MockUserFactory(true, true);
-      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
-        '../model/User.js': MockUser
-      });
-      var instance = new MockedUserRegistery(io);
-      var data ={
-        id: 10,
-        name: 'quack' 
+      // given
+
+      var MockUser = {
+        fromIo: function() {
+          return {
+            id: 10,
+            isValid: function() {
+              return true;
+            },
+            validateName: function() {
+              return true;
+            },
+            name: 'joe'
+          };
+        }
       };
+
+      var UserRegistery = require('../lib/modules/userregistery.js');
+
+      var instance = new UserRegistery();
+
+      var result = null;
+      var sentevt = null;
+      var sentpayload = null;
+      var socket = {
+        id: 10,
+        broadcast: function(evt, payload) {
+          sentevt = evt;
+          sentpayload = payload;
+        }
+      };
+      var data ={
+        name: 'joe'
+      };
+
+
       //when
-      var result = instance.onNameChange(data);
+      instance.onNameChange(socket, data, function(payload) {
+        result = payload;
+      });
 
       //then
-      expect(result).to.be.not.ok;
-      expect(io.sockets.emitCalled).to.be.not.ok;
+
+      expect(result).to.be.eql(Result.failure(10,{error: 'invalid username'}));
+      expect(sentevt).to.be.equal(null);
+      expect(sentpayload).to.be.eql(null);
     });
   });
 
