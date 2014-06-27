@@ -1,9 +1,9 @@
 'use strict';
-var expect = require('chai').expect
+var expect = require('chai').expect;
 var injectr = require('injectr');
 
-var RoomService = require('../lib/modules/roomservice.js');
-var Result = require('../lib/model/result.js');
+var RoomService = require('../../lib/modules/roomservice.js');
+var Result = require('../../lib/model/result.js');
 
 describe('RoomService', function() {
   describe('#onJoin', function() {
@@ -88,7 +88,7 @@ describe('RoomService', function() {
       var newRoomCreated = false;
       var newRoomJoined = false;
 
-      var MockRoomService = injectr('../lib/modules/roomservice.js', {
+      var MockRoomService = injectr('../../lib/modules/roomservice.js', {
         '../model/room.js': function(socket, name) {
           this.name = name;
           this.owner = socket.id;

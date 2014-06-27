@@ -1,7 +1,7 @@
 'use strict';
 var expect = require('chai').expect;
-var Room = require('../lib/model/room.js');
-var Result = require('../lib/model/result.js');
+var Room = require('../../lib/model/room.js');
+var Result = require('../../lib/model/result.js');
 var mocks = require('./mocks/mocks.js');
 
 describe('Rooms', function() {

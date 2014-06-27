@@ -1,6 +1,6 @@
 'use strict';
 var expect = require('chai').expect;
-var Event = require('../lib/model/Event.js');
+var Event = require('../../lib/model/Event.js');
 
 describe('event', function() {
   describe('#isValid', function() {

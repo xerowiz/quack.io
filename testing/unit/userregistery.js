@@ -1,10 +1,10 @@
 'use strict';
 var expect = require('chai').expect;
 var injectr = require('injectr');
-var User = require('../lib/model/user.js');
-var UserRegistery = require('../lib/modules/userregistery.js');
+var User = require('../../lib/model/user.js');
+var UserRegistery = require('../../lib/modules/userregistery.js');
 var Mocks = require('./mocks/mocks.js');
-var Result = require('../lib/model/result.js');
+var Result = require('../../lib/model/result.js');
 
 describe('userregistery', function() {
   describe('#isIdentified', function() {
@@ -49,7 +49,7 @@ describe('userregistery', function() {
         }
       };
 
-      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
+      var MockedUserRegistery = injectr('../../lib/modules/userregistery.js',{
         '../model/user.js': MockUser
       });
 
@@ -81,7 +81,7 @@ describe('userregistery', function() {
         }
       };
 
-      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
+      var MockedUserRegistery = injectr('../../lib/modules/userregistery.js',{
         '../model/user.js': MockUser
       });
 
@@ -114,7 +114,7 @@ describe('userregistery', function() {
           };
         }
       };
-      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
+      var MockedUserRegistery = injectr('../../lib/modules/userregistery.js',{
         '../model/User.js': MockUser
       });
 
@@ -134,7 +134,7 @@ describe('userregistery', function() {
     it('should not unregister and notify a not connected user', function() {
       // given
       var MockUser = Mocks.MockUserFactory(true, true);
-      var MockedUserRegistery = injectr('../lib/modules/userregistery.js',{
+      var MockedUserRegistery = injectr('../../lib/modules/userregistery.js',{
         '../model/User.js': MockUser
       });
       var socket = {id: 10};
@@ -167,7 +167,7 @@ describe('userregistery', function() {
         }
       };
 
-      var userregistery = require('../lib/modules/userregistery.js');
+      var userregistery = require('../../lib/modules/userregistery.js');
 
       var instance = new userregistery();
 
@@ -218,7 +218,7 @@ describe('userregistery', function() {
         }
       };
 
-      var UserRegistery = require('../lib/modules/userregistery.js');
+      var UserRegistery = require('../../lib/modules/userregistery.js');
 
       var instance = new UserRegistery();
 
@@ -268,7 +268,7 @@ describe('userregistery', function() {
         }
       };
 
-      var UserRegistery = require('../lib/modules/userregistery.js');
+      var UserRegistery = require('../../lib/modules/userregistery.js');
 
       var instance = new UserRegistery();
 
@@ -319,7 +319,7 @@ describe('userregistery', function() {
         }
       };
 
-      var UserRegistery = require('../lib/modules/userregistery.js');
+      var UserRegistery = require('../../lib/modules/userregistery.js');
 
       var instance = new UserRegistery();
 
