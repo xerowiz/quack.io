@@ -55,6 +55,9 @@ describe('#join', function() {
   });
 
   afterEach(function(done) {
+    socket.on('disconnect',function() {
+      done();
+    });
     socket.disconnect();
   });
 
