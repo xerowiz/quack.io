@@ -164,9 +164,14 @@ describe('RoomService', function() {
       var broadcastPayload = null;
       var socket = {
         id: 'aaaa',
-        broadcast: function(event, payload) {
-          broadcastEvent = event;
-          broadcastPayload = payload;
+      };
+
+      var io = {
+        sockets: {
+          emit: function(event, payload) {
+            broadcastEvent = event;
+            broadcastPayload = payload;
+          }
         }
       };
 
@@ -190,7 +195,7 @@ describe('RoomService', function() {
         }
       };
 
-      var roomservice = new RoomService({}, registery);
+      var roomservice = new RoomService(io, registery);
       roomservice.rooms.push(room);
 
       // when

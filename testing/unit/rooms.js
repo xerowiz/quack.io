@@ -47,7 +47,7 @@ describe('Rooms', function() {
         expect(notifMessage).to.equal('userJoined');
         expect(notifPayload).to.equal('bbbb');
         expect(result).to.be.eql(Result.success());
-        expect(emitEvent).to.be.equal('joinedRoom');
+        expect(emitEvent).to.be.equal('roomJoined');
         expect(emitPayload).to.be.equal('quackroom')
     });
 
