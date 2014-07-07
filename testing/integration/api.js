@@ -46,6 +46,7 @@ describe('#identify', function() {
 
 describe('#join', function() {
   var socket = null;
+  var otherSocket = null;
 
   beforeEach(function(done) {
     socket = io('http://127.0.0.1:8080', options);
@@ -61,16 +62,37 @@ describe('#join', function() {
     socket.disconnect();
   });
 
+  before(function(done) {
+    otherSocket = io('http://127.0.0.1:8080', options);
+    otherSocket.on('connect',function() {
+      otherSocket.emit('identify', {name: 'testor'}, function(result) {
+        otherSocket.emit('join', 'test1', function(result) {
+          done();
+        });
+      });
+    });
+  });
+
+  after(function(done) {
+    otherSocket.on('disconnect',function() {
+      done();
+    });
+    otherSocket.disconnect();
+  });
+
   it('should ack a success for an identified user in an exisiting room', function(done) {
     var roomname = 'test1';
     socket.emit('identify', {name: 'roger'}, function() {
 
-      socket.on('roomJoined',function(name) {
-        expect(name).to.be.equal(roomname);
+      var roomNotified = false;
+
+      otherSocket.on('userJoined', function() {
+        roomNotified = true;
       });
 
       socket.emit('join', roomname, function(result){
         expect(result).to.be.eql(result);
+        expect(roomNotified).to.be.ok;
         done();
       });
     });

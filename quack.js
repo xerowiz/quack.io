@@ -47,7 +47,6 @@ io.on('connection', function(socket) {
   socket.on('leave', function(data, ack) {
     roomService.onLeave(socket, data, ack);
   });
-
 });
 
 http.listen(app.get('port'), app.get('ipaddr'), function(){
