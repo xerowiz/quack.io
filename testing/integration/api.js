@@ -126,11 +126,100 @@ describe('#join', function() {
       });
 
       socket.emit('join', roomname, function(result) {
-        console.log('doubleJoin');
         expect(result).to.be.eql({status: 'failure', code: 1, payload: {error: 'user already in room'}});
         expect(roomNotified).to.be.not.ok;
         done();
       });
     });
   });
+});
+
+describe('#leave', function() {
+  var socket = null;
+  var otherSocket = null;
+  var roomname = 'test1';
+
+  before(function(done) {
+    socket = io('http://127.0.0.1:8080', options);
+    socket.on('connect',function() {
+      done();
+    });
+  });
+
+  after(function(done) {
+    socket.on('disconnect',function() {
+      done();
+    });
+    socket.disconnect();
+  });
+
+  before(function(done) {
+    otherSocket = io('http://127.0.0.1:8080', options);
+    otherSocket.on('connect',function() {
+      otherSocket.emit('identify', {name: 'testor'}, function(result) {
+        otherSocket.emit('join', roomname, function(result) {
+          done();
+        });
+      });
+    });
+  });
+
+  after(function(done) {
+    otherSocket.on('disconnect',function() {
+      done();
+    });
+    otherSocket.disconnect();
+  });
+
+  it('should fail to leave a room with an unidentified user', function(done) {
+    var roomNotified = false;
+
+    otherSocket.on('userLeft', function(){
+      roomNotified = false;
+    });
+
+    socket.emit('leave', roomname, function(result){
+      expect(result).to.be.eql({status: 'failure', code: 11, payload: {error: 'user not identified'}});
+      expect(roomNotified).to.be.not.ok;
+      done();
+    });
+  });
+
+  it('should fail to leave a not joined room with an identified user', function(done) {
+    socket.emit('identify', {name: 'roger'}, function() {
+
+      var roomNotified = false;
+
+      otherSocket.on('userLeft', function() {
+        roomNotified = true;
+      });
+
+      socket.emit('leave', roomname, function(result){
+        expect(result).to.be.eql({status: 'failure', code: 1, payload: {error: 'user not in room'}});
+        expect(roomNotified).to.be.not.ok;
+        done();
+      });
+    });
+  });
+
+  it('should leave a joined room with an identified user', function(done) {
+    socket.emit('join', roomname, function(result) {
+
+      var roomNotified = false;
+
+      otherSocket.on('userLeft',function(payload) {
+        expect(payload).to.be.equal(); // test here ...
+        roomNotified = true;
+      });
+
+      socket.emit('leave', roomname, function(result) {
+        expect(roomNotified).to.be.ok;
+        expect(result).to.be.eql({status: 'success'});
+        done();
+      });
+
+
+    });
+  });
+
 });

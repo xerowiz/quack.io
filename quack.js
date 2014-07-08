@@ -28,6 +28,7 @@ io.on('connection', function(socket) {
   });
 
   socket.on('disconnect', function() {
+    console.log('disconnect', socket.id);
     roomService.onDisconnect(socket);
     registery.onDisconnect(socket);
   });
@@ -47,6 +48,7 @@ io.on('connection', function(socket) {
   socket.on('leave', function(data, ack) {
     roomService.onLeave(socket, data, ack);
   });
+  console.log('connect', socket.id);
 });
 
 http.listen(app.get('port'), app.get('ipaddr'), function(){
