@@ -18,7 +18,10 @@ describe('#identify', function() {
     socket.on('connect', function() {
       socket.emit('identify', payload, function(result) {
         // then
-        expect(result).to.be.eql({ status: 'success'});
+        expect(result.code).to.be.equal(0);
+        expect(result.payload.id).to.be.not.equal(undefined);
+        expect(result.payload.name).to.be.equal('regis');
+        expect(result.payload.status).to.be.equal('on');
         socket.disconnect();
         done();
       });
@@ -34,7 +37,7 @@ describe('#identify', function() {
     socket.on('connect', function() {
       socket.emit('identify', payload, function(result) {
         //then
-        expect(result).to.be.eql({ status: 'failure', code: 10, payload: { error: 'invalid data' }});
+        expect(result).to.be.eql({code: 10, payload: { error: 'invalid data' }});
         socket.disconnect();
         done();
       });
@@ -90,7 +93,7 @@ describe('#join', function() {
     });
 
     socket.emit('join', roomname, function(result) {
-      expect(result).to.be.eql({ status: 'failure', code: 11, payload: { error: 'user not identified' }});
+      expect(result).to.be.eql({code: 11, payload: { error: 'user not identified' }});
       expect(roomNotified).to.be.not.ok;
       done();
     });
@@ -108,7 +111,7 @@ describe('#join', function() {
       });
 
       socket.emit('join', roomname, function(result){
-        expect(result).to.be.eql({status: 'success'});
+        expect(result).to.be.eql({code: 0});
         expect(roomNotified).to.be.ok;
         done();
       });
@@ -126,7 +129,7 @@ describe('#join', function() {
       });
 
       socket.emit('join', roomname, function(result) {
-        expect(result).to.be.eql({status: 'failure', code: 1, payload: {error: 'user already in room'}});
+        expect(result).to.be.eql({code: 1, payload: {error: 'user already in room'}});
         expect(roomNotified).to.be.not.ok;
         done();
       });
@@ -179,7 +182,7 @@ describe('#leave', function() {
     });
 
     socket.emit('leave', roomname, function(result){
-      expect(result).to.be.eql({status: 'failure', code: 11, payload: {error: 'user not identified'}});
+      expect(result).to.be.eql({code: 11, payload: {error: 'user not identified'}});
       expect(roomNotified).to.be.not.ok;
       done();
     });
@@ -195,7 +198,7 @@ describe('#leave', function() {
       });
 
       socket.emit('leave', roomname, function(result){
-        expect(result).to.be.eql({status: 'failure', code: 1, payload: {error: 'user not in room'}});
+        expect(result).to.be.eql({code: 1, payload: {error: 'user not in room'}});
         expect(roomNotified).to.be.not.ok;
         done();
       });
@@ -208,17 +211,16 @@ describe('#leave', function() {
       var roomNotified = false;
 
       otherSocket.on('userLeft',function(payload) {
-        expect(payload).to.be.equal(); // test here ...
+        console.log(payload);
+        //expect(payload).to.be.equal(); // test here ...
         roomNotified = true;
       });
 
       socket.emit('leave', roomname, function(result) {
         expect(roomNotified).to.be.ok;
-        expect(result).to.be.eql({status: 'success'});
+        expect(result).to.be.eql({code: 0});
         done();
       });
-
-
     });
   });
 
