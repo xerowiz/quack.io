@@ -11,7 +11,7 @@ describe('#identify', function() {
 
   it('should ack a success when username is valid', function(done) {
     // given
-    var payload = { name: 'regis'};
+    var payload = {name: 'regis'};
 
     // when
     var socket = io('http://127.0.0.1:8080', options);
@@ -141,6 +141,7 @@ describe('#leave', function() {
   var socket = null;
   var otherSocket = null;
   var roomname = 'test1';
+  var userid = null;
 
   before(function(done) {
     socket = io('http://127.0.0.1:8080', options);
@@ -177,7 +178,7 @@ describe('#leave', function() {
   it('should fail to leave a room with an unidentified user', function(done) {
     var roomNotified = false;
 
-    otherSocket.on('userLeft', function(){
+    otherSocket.on('userLeft', function() {
       roomNotified = false;
     });
 
@@ -189,9 +190,10 @@ describe('#leave', function() {
   });
 
   it('should fail to leave a not joined room with an identified user', function(done) {
-    socket.emit('identify', {name: 'roger'}, function() {
+    socket.emit('identify', {name: 'roger'}, function(result) {
 
       var roomNotified = false;
+      userid = result.payload.id;
 
       otherSocket.on('userLeft', function() {
         roomNotified = true;
@@ -211,8 +213,7 @@ describe('#leave', function() {
       var roomNotified = false;
 
       otherSocket.on('userLeft',function(payload) {
-        console.log(payload);
-        //expect(payload).to.be.equal(); // test here ...
+        expect(payload).to.be.equal(userid);
         roomNotified = true;
       });
 
