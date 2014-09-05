@@ -8,33 +8,29 @@ describe('Rooms', function() {
   describe('#join', function() {
     it('should accept join when user is not in room', function() {
       // given
-      var room = new Room({id: 'aaaaa'}, 'quackroom');
+      var room = new Room('quackroom');
       var broadcastRoom = null;
       var joinedRoom = null;
       var notifMessage = null;
       var notifPayload = null;
-      var emitEvent = null;
-      var emitPayload = null;
 
       var socket = mocks.MockSocketFactory(
         'bbbb',
         function(name, callback) {
           joinedRoom = name;
-          callback();
+          callback(null);
         },
         function(inRoom) {
           broadcastRoom = inRoom;
-          return {
-            broadcast: function(message, payload) {
-              notifMessage = message;
-              notifPayload = payload;
-            }};
+          return{
+            broadcast: {
+              emit: function(message, payload) {
+                notifMessage = message;
+                notifPayload = payload;
+              }
+            }
+          };
         });
-
-        socket.emit = function(event, payload) {
-          emitEvent = event;
-          emitPayload = payload;
-        };
 
         var result = null;
         // when
@@ -43,87 +39,50 @@ describe('Rooms', function() {
         });
         // then
         expect(joinedRoom).to.equal('quackroom');
-        expect(broadcastRoom).to.equal('quackroom');
         expect(notifMessage).to.equal('userJoined');
         expect(notifPayload).to.equal('bbbb');
         expect(result).to.be.eql(Result.success());
-        expect(emitEvent).to.be.equal('roomJoined');
-        expect(emitPayload).to.be.equal('quackroom')
     });
 
     it('should cancel join socket join operation fails', function() {
       // given
-      var room = new Room({id: 'aaaaa'}, 'quackroom');
-      var broadcastRoom = null;
+      var room = new Room('quackroom');
       var joinedRoom = null;
-      var notifMessage = null;
-      var notifPayload = null;
       var socket = mocks.MockSocketFactory(
         'bbbb',
         function(name, callback) {
           joinedRoom = name;
           callback({error: 'failed'});
-        },
-        function(inRoom) {
-          broadcastRoom = inRoom;
-          return {
-            broadcast: function(message, payload) {
-              notifMessage = message;
-              notifPayload = payload;
-            }};
-        });
+        }
+      );
 
-        var result = null;
-        // when
-        room.join(socket, function(joinResult){
-          result = joinResult;
-        });
+      var result = null;
+      // when
+      room.join(socket, function(joinResult){
+        result = joinResult;
+      });
 
-        // then
-        expect(joinedRoom).to.equal('quackroom');
-        expect(broadcastRoom).to.equal(null);
-        expect(notifMessage).to.equal(null);
-        expect(notifPayload).to.equal(null);
-        expect(result).to.be.eql(Result.failure(0,{error: 'failed'}));
+      // then
+      expect(joinedRoom).to.equal('quackroom');
+      expect(result).to.be.eql(Result.failure(10,{error: 'failed'}));
     });
 
     it('should not accept join when user is already in room', function() {
       // given
-      var room = new Room({id: 'aaaaa'}, 'quackroom');
-      var broadcastRoom = null;
-      var joinedRoom = null;
-      var notifMessage = null;
-      var notifPayload = null;
-      var user = {id: 'bbbb'};
-      var socket = mocks.MockSocketFactory(
-        'bbbb',
-        function(name, callback) {
-          joinedRoom = name;
-          callback();
-        },
-        function(inRoom) {
-          broadcastRoom = inRoom;
-          return {
-            broadcast: function(message, payload) {
-              notifMessage = message;
-              notifPayload = payload;
-            }};
-        });
+      var room = new Room('quackroom');
+      var user = 'bbbb';
+      var socket = mocks.MockSocketFactory('bbbb');
 
-        room.users.push(user);
+      room.users.push(user);
 
-        var result = null;
-        // when
-        room.join(socket, function(joinResult){
-          result = joinResult;
-        });
+      var result = null;
+      // when
+      room.join(socket, function(joinResult){
+        result = joinResult;
+      });
 
-        // then
-        expect(joinedRoom).to.equal(null);
-        expect(broadcastRoom).to.equal(null);
-        expect(notifMessage).to.equal(null);
-        expect(notifPayload).to.equal(null);
-        expect(result).to.be.eql(Result.failure(1,{error: 'already in room'}));
+      // then
+      expect(result).to.be.eql(Result.failure(11,{error: 'user already in room'}));
     });
   });
 
