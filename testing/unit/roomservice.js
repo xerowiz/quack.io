@@ -76,7 +76,7 @@ describe('RoomService', function() {
 
       // then
       expect(joinCalled).to.be.not.ok;
-      expect(result).to.be.eql(Result.failure(11,{error: 'user not identitied'}));
+      expect(result).to.be.eql(Result.failure(11,{error: 'user not identified'}));
     });
 
     it('should create a new room when users ask to join a not already created one', function() {
