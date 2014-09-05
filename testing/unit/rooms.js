@@ -44,7 +44,7 @@ describe('Rooms', function() {
         expect(result).to.be.eql(Result.success());
     });
 
-    it('should cancel join socket join operation fails', function() {
+    it('should cancel join socket when join operation fails', function() {
       // given
       var room = new Room('quackroom');
       var joinedRoom = null;
@@ -67,7 +67,7 @@ describe('Rooms', function() {
       expect(result).to.be.eql(Result.failure(10,{error: 'failed'}));
     });
 
-    it('should not accept join when user is already in room', function() {
+    it('should cancel join when user is already in room', function() {
       // given
       var room = new Room('quackroom');
       var user = 'bbbb';
@@ -89,12 +89,12 @@ describe('Rooms', function() {
   describe('#leave', function() {
     it('should accept leave when user is in room', function() {
       // given
-      var room = new Room({id: 'aaaaa'}, 'quackroom');
+      var room = new Room('quackroom');
       var broadcastRoom = null;
       var leftRoom = null;
       var notifMessage = null;
       var notifPayload = null;
-      var user = {id: 'bbbb'};
+      var user = 'bbbb';
       var emitEvent = null;
       var emitPayload = null;
 
@@ -102,59 +102,45 @@ describe('Rooms', function() {
         'bbbb',
         function(name, callback) {
           leftRoom = name;
-          callback();
+          callback(null);
         },
         function(inRoom) {
           broadcastRoom = inRoom;
-          return {
-            broadcast: function(message, payload) {
-              notifMessage = message;
-              notifPayload = payload;
-            }};
+          return{
+            broadcast:{
+              emit: function(message, payload) {
+                notifMessage = message;
+                notifPayload = payload;
+              }
+            }
+          };
         });
 
-        socket.emit = function(event, payload) {
-          emitEvent = event;
-          emitPayload = payload;
-        };
-        room.users.push(user);
+      room.users.push(user);
 
-        var result = null;
-        // when
-        room.leave(socket, function(leaveResult){
-          result = leaveResult;
-        });
-        // then
-        expect(leftRoom).to.equal('quackroom');
-        expect(broadcastRoom).to.equal('quackroom');
-        expect(notifMessage).to.equal('userLeft');
-        expect(notifPayload).to.equal('bbbb');
-        expect(result).to.be.eql(Result.success());
-        expect(emitEvent).to.be.equal('leftRoom');
-        expect(emitPayload).to.be.eql('quackroom');
+      var result = null;
+      // when
+      room.leave(socket, function(leaveResult){
+        result = leaveResult;
+      });
+      // then
+      expect(leftRoom).to.equal('quackroom');
+      expect(broadcastRoom).to.equal('quackroom');
+      expect(notifMessage).to.equal('userLeft');
+      expect(notifPayload).to.equal('bbbb');
+      expect(result).to.be.eql(Result.success());
     });
 
-    it('should cancel leave  when socket leave operation fails', function() {
+    it('should cancel leave when socket leave fails', function() {
       // given
-      var room = new Room({id: 'aaaaa'}, 'quackroom');
-      var broadcastRoom = null;
+      var room = new Room('quackroom');
       var leftRoom = null;
-      var notifMessage = null;
-      var notifPayload = null;
-      var user = {id: 'bbbb'};
+      var user = 'bbbb';
       var socket = mocks.MockSocketFactory(
         'bbbb',
         function(name, callback) {
           leftRoom = name;
           callback({error: 'failed'});
-        },
-        function(inRoom) {
-          broadcastRoom = inRoom;
-          return {
-            broadcast: function(message, payload) {
-              notifMessage = message;
-              notifPayload = payload;
-            }};
         });
 
         room.users.push(user);
@@ -166,52 +152,27 @@ describe('Rooms', function() {
 
         // then
         expect(leftRoom).to.equal('quackroom');
-        expect(broadcastRoom).to.equal(null);
-        expect(notifMessage).to.equal(null);
-        expect(notifPayload).to.equal(null);
-        expect(result).to.be.eql(Result.failure(0, {error: 'failed'}));
+        expect(result).to.be.eql(Result.failure(10, {error: 'failed'}));
     });
 
-    it('should not accept join when user is not in room', function() {
+    it('should not accept leave when user is not in room', function() {
       // given
-      var room = new Room({id: 'aaaaa'}, 'quackroom');
-      var broadcastRoom = null;
-      var leftRoom = null;
-      var notifMessage = null;
-      var notifPayload = null;
-      var socket = mocks.MockSocketFactory(
-        'bbbb',
-        function(name, callback) {
-          leftRoom = name;
-          callback();
-        },
-        function(inRoom) {
-          broadcastRoom = inRoom;
-          return {
-            broadcast: function(message, payload) {
-              notifMessage = message;
-              notifPayload = payload;
-            }};
-        });
+      var room = new Room('quackroom');
+      var socket = mocks.MockSocketFactory('bbbb');
 
+      var result = null;
+      // when
+      room.leave(socket, function(leaveResult){
+        result = leaveResult;
+      });
 
-        var result = null;
-        // when
-        room.leave(socket, function(leaveResult){
-          result = leaveResult;
-        });
-
-        // then
-        expect(leftRoom).to.equal(null);
-        expect(broadcastRoom).to.equal(null);
-        expect(notifMessage).to.equal(null);
-        expect(notifPayload).to.equal(null);
-        expect(result).to.be.eql(Result.failure(1,{error: 'not in room'}));
+      // then
+      expect(result).to.be.eql(Result.failure(11,{error: 'user not in room'}));
     });
   });
 
   describe('#post', function() {
-    it('should accept post', function() {
+    it('should accept post when user is in room', function() {
       // given
       var socket = {id : 'aaaa'};
       var broadcastRoom = null;
@@ -237,7 +198,7 @@ describe('Rooms', function() {
         }
       };
 
-      var room = new Room({id: 'aaaa'}, 'quackroom');
+      var room = new Room('quackroom');
       room.users.push(socket);
 
       // when
