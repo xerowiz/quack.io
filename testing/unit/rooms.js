@@ -199,7 +199,7 @@ describe('Rooms', function() {
       };
 
       var room = new Room('quackroom');
-      room.users.push(socket);
+      room.users.push('aaaa');
 
       // when
       room.post(socket,io, event, function(result){
@@ -221,17 +221,7 @@ describe('Rooms', function() {
       var emittedPayload = null;
       var receivedResult = null;
 
-      var io = {
-        in: function(roomName) {
-          broadcastRoom = roomName;
-          return {
-            emit: function(event, payload) {
-              emittedEvent = event;
-              emittedPayload = payload;
-            }
-          };
-        }
-      };
+      var io = {};
 
       var event = {
         isValid: function() {
@@ -240,7 +230,7 @@ describe('Rooms', function() {
       };
 
       var room = new Room({id: 'aaaa'}, 'quackroom');
-      room.users.push(socket);
+      room.users.push('aaaa');
 
       // when
       room.post(socket,io, event, function(result){
@@ -251,7 +241,7 @@ describe('Rooms', function() {
       expect(broadcastRoom).to.equal(null);
       expect(emittedEvent).to.equal(null);
       expect(emittedPayload).to.equal(null);
-      expect(receivedResult).to.eql(Result.failure(0,{error: 'invalid event'}));
+      expect(receivedResult).to.eql(Result.failure(10,{error: 'invalid event'}));
     });
 
     it('should not accept post when user is not in room', function() {
@@ -291,7 +281,7 @@ describe('Rooms', function() {
       expect(broadcastRoom).to.equal(null);
       expect(emittedEvent).to.equal(null);
       expect(emittedPayload).to.equal(null);
-      expect(receivedResult).to.eql(Result.failure(1, {error:'not in room'}));
+      expect(receivedResult).to.eql(Result.failure(11, {error:'not in room'}));
     });
   });
 });
