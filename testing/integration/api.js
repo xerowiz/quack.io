@@ -3,6 +3,8 @@
 var io = require('socket.io-client');
 var expect = require('chai').expect;
 
+
+var serverurl = 'http://' + process.env.QUACKADDR + ':' + process.env.QUACKPORT;
 var options ={
   'force new connection': true
 };
@@ -14,7 +16,7 @@ describe('#identify', function() {
     var payload = {name: 'regis'};
 
     // when
-    var socket = io('http://127.0.0.1:8080', options);
+    var socket = io(serverurl, options);
     socket.on('connect', function() {
       socket.emit('identify', payload, function(result) {
         // then
@@ -33,7 +35,7 @@ describe('#identify', function() {
     var payload = 'srouv';
 
     // when
-    var socket = io('http://127.0.0.1:8080', options);
+    var socket = io(serverurl, options);
     socket.on('connect', function() {
       socket.emit('identify', payload, function(result) {
         //then
@@ -52,7 +54,7 @@ describe('#join', function() {
   var otherSocket = null;
 
   before(function(done) {
-    socket = io('http://127.0.0.1:8080', options);
+    socket = io(serverurl, options);
     socket.on('connect',function() {
       done();
     });
@@ -66,7 +68,7 @@ describe('#join', function() {
   });
 
   before(function(done) {
-    otherSocket = io('http://127.0.0.1:8080', options);
+    otherSocket = io(serverurl, options);
     otherSocket.on('connect',function() {
       otherSocket.emit('identify', {name: 'testor'}, function(result) {
         otherSocket.emit('join', 'test1', function(result) {
@@ -144,7 +146,7 @@ describe('#leave', function() {
   var userid = null;
 
   before(function(done) {
-    socket = io('http://127.0.0.1:8080', options);
+    socket = io(serverurl, options);
     socket.on('connect',function() {
       done();
     });
@@ -158,7 +160,7 @@ describe('#leave', function() {
   });
 
   before(function(done) {
-    otherSocket = io('http://127.0.0.1:8080', options);
+    otherSocket = io(serverurl, options);
     otherSocket.on('connect',function() {
       otherSocket.emit('identify', {name: 'testor'}, function(result) {
         otherSocket.emit('join', roomname, function(result) {
