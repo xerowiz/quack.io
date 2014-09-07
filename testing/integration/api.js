@@ -129,7 +129,7 @@ describe('#join', function() {
       });
 
       socket.emit('join', roomname, function(result) {
-        expect(result).to.be.eql({code: 1, payload: {error: 'user already in room'}});
+        expect(result).to.be.eql({code: 11, payload: {error: 'user already in room'}});
         expect(roomNotified).to.be.not.ok;
         done();
       });
@@ -175,7 +175,7 @@ describe('#leave', function() {
     otherSocket.disconnect();
   });
 
-  it('should fail to leave a room with an unidentified user', function(done) {
+  it('should fail to leave a room with an not identified user', function(done) {
     var roomNotified = false;
 
     otherSocket.on('userLeft', function() {
@@ -200,7 +200,7 @@ describe('#leave', function() {
       });
 
       socket.emit('leave', roomname, function(result){
-        expect(result).to.be.eql({code: 1, payload: {error: 'user not in room'}});
+        expect(result).to.be.eql({code: 11, payload: {error: 'user not in room'}});
         expect(roomNotified).to.be.not.ok;
         done();
       });
